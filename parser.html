@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parseador Inteligente de XML a Tabla v6.0 (Final)</title>
+    <style>
+        /* Estilos Base */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 90%;
+            max-width: 900px;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,.1);
+        }
+        h1 {
+            color: #1a2533;
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+        button#generarBtn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color .3s;
+        }
+        button#generarBtn:hover {
+            background-color: #218838;
+        }
+
+        /* Contenedor del Textarea */
+        .textarea-container {
+            position: relative;
+            margin-bottom: 15px;
+        }
+        textarea#xmlInput {
+            width: 100%;
+            height: 250px;
+            padding: 10px 40px 10px 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 14px;
+            box-sizing: border-box;
+            resize: vertical; /* Permite al usuario cambiar la altura */
+        }
+        button#borrarBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: auto;
+            padding: 2px 8px;
+            background-color: #e9ecef;
+            color: #495057;
+            border: 1px solid #ced4da;
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1;
+            opacity: .7;
+            transition: opacity .3s, background-color .3s;
+        }
+        button#borrarBtn:hover {
+            opacity: 1;
+            background-color: #ced4da;
+        }
+
+        /* Tabla de Resultados */
+        #tablaContenedor {
+            margin-top: 25px;
+            overflow-x: auto; /* Mantiene la tabla desplazable horizontalmente */
+        }
+        .tabla-resultado {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #ddd;
+        }
+        .tabla-resultado th, .tabla-resultado td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+            word-break: break-all;
+        }
+        .tabla-resultado th {
+            background-color: #e9ecef;
+            font-weight: 700;
+        }
+        .error {
+            color: #d93025;
+            background-color: #fbe9e7;
+            border: 1px solid #d93025;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+
+        /* --- INICIO DE MEJORAS CSS --- */
+
+        /* 1. Corrección del Botón Flotante */
+        #scrollTopBtn {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 99;
+            border: none;
+            outline: 0;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 50%;
+            font-size: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,.3);
+            /* Tamaño fijo para asegurar que sea un círculo */
+            width: 45px;
+            height: 45px;
+            /* Centrado perfecto del ícono */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+        #scrollTopBtn:hover {
+            background-color: #0056b3;
+        }
+
+        /* 2. Diseño Responsivo para Móviles y Tablets */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                width: 100%;
+                padding: 15px;
+            }
+            h1 {
+                font-size: 1.5rem; /* Título más pequeño en móviles */
+            }
+            #scrollTopBtn {
+                bottom: 15px;
+                right: 15px;
+                width: 40px;
+                height: 40px;
+            }
+        }
+        /* --- FIN DE MEJORAS CSS --- */
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🎯 Parseador de XML v6.0</h1>
+        <p>Pega tu XML aquí. La herramienta mostrará las claves con su contexto padre para mayor claridad.</p>
+        
+        <div class="textarea-container">
+            <textarea id="xmlInput" placeholder="Pega aquí tu texto XML..."></textarea>
+            <button id="borrarBtn" title="Borrar contenido">&times;</button>
+        </div>
+        
+        <button id="generarBtn" id="generarBtn">🖱️ Limpiar y Generar Tabla</button>
+
+        <div id="tablaContenedor">
+            }
+        </div>
+    </div>
+
+    <button id="scrollTopBtn" title="Ir arriba">&#8679;</button>
+
+    <script>
+        // El código JavaScript no necesita cambios, funciona perfectamente.
+        // --- Referencias a los elementos del DOM ---
+        const generarBtn = document.getElementById('generarBtn');
+        const borrarBtn = document.getElementById('borrarBtn');
+        const xmlInput = document.getElementById('xmlInput');
+        const tablaContenedor = document.getElementById('tablaContenedor');
+        const scrollTopBtn = document.getElementById('scrollTopBtn');
+
+        // --- Lógica de Botones Auxiliares ---
+        borrarBtn.addEventListener('click', function() {
+            xmlInput.value = '';
+            tablaContenedor.innerHTML = '';
+            xmlInput.focus();
+        });
+        window.onscroll = function() {
+            if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+                scrollTopBtn.style.display = "flex"; // Cambiado a flex para el centrado
+            } else {
+                scrollTopBtn.style.display = "none";
+            }
+        };
+        scrollTopBtn.addEventListener('click', function() {
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        });
+        
+        // --- Lógica principal del Parseador ---
+        generarBtn.addEventListener('click', function() {
+            let rawString = xmlInput.value;
+            tablaContenedor.innerHTML = '';
+
+            if (!rawString.trim()) {
+                tablaContenedor.innerHTML = `<p class="error">Por favor, pega contenido XML en el área de texto.</p>`;
+                return;
+            }
+
+            const startIndex = rawString.indexOf('<');
+            if (startIndex === -1) {
+                tablaContenedor.innerHTML = `<p class="error">Error: El texto no contiene un inicio de XML válido (&lt;).</p>`;
+                return;
+            }
+
+            let xmlString = rawString.substring(startIndex).trim().replace(/""/g, '"');
+
+            try {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlString, "application/xml");
+
+                if (xmlDoc.getElementsByTagName("parsererror").length) {
+                    throw new Error("El XML proporcionado no es válido o no pudo ser corregido. Revisa la sintaxis.");
+                }
+
+                const flatData = [];
+                function procesarNodo(node, path) {
+                    if (node.nodeType !== 1) return;
+                    if (node.children.length > 0) {
+                        for (const child of node.children) {
+                            procesarNodo(child, `${path}.${child.tagName}`);
+                        }
+                    } else {
+                        const value = node.textContent.trim();
+                        if (value) { flatData.push({ path: path, value: value }); }
+                    }
+                }
+                
+                procesarNodo(xmlDoc.documentElement, xmlDoc.documentElement.tagName);
+
+                const resultadosAgrupados = new Map();
+                for (const item of flatData) {
+                    if (resultadosAgrupados.has(item.path)) {
+                        const valorExistente = resultadosAgrupados.get(item.path);
+                        resultadosAgrupados.set(item.path, `${valorExistente}, ${item.value}`);
+                    } else {
+                        resultadosAgrupados.set(item.path, item.value);
+                    }
+                }
+
+                if (resultadosAgrupados.size === 0) {
+                     throw new Error("No se encontraron datos extraíbles en el XML.");
+                }
+
+                let tablaHTML = '<table class="tabla-resultado"><thead><tr><th>Clave (Contexto)</th><th>Valor</th></tr></thead><tbody>';
+                
+                for (const [claveCompleta, valor] of resultadosAgrupados.entries()) {
+                     const parts = claveCompleta.split('.');
+                     const claveConContexto = parts.length > 1 ? parts.slice(-2).join('.') : parts[0];
+                     tablaHTML += `<tr><td>${claveConContexto}</td><td>${valor}</td></tr>`;
+                }
+                tablaHTML += '</tbody></table>';
+                tablaContenedor.innerHTML = tablaHTML;
+
+            } catch (e) {
+                tablaContenedor.innerHTML = `<p class="error"><strong>Error:</strong> ${e.message}</p>`;
+            }
+        });
+    </script>
+
+</body>
+</html>
